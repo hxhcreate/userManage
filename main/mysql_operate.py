@@ -2,7 +2,7 @@ import pymysql
 from config.settings import MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB
 
 
-class MySQLDB():
+class MySQLDB:
 
     def __init__(self, host, port, user, password, dbname):
         self.db = pymysql.connect(
@@ -10,7 +10,7 @@ class MySQLDB():
             port=port,
             user=user,
             passwd=password,
-            db=dbname.db,
+            db=dbname,
             autocommit=True
         )
         # 创建游标 并且使用字典型返回对象
