@@ -9,3 +9,11 @@ MYSQL_DB = "usermanage"
 
 # token过期时间(单位：秒)
 EXPIRE_TIME = 600
+
+# Redis配置
+REDIS_HOST = "127.0.0.1"
+REDIS_PORT = 6379
+REDIS_PASSWORD = "123456"
+
+# MD5加密盐值
+MD5_SALT = "test2020#%*"
