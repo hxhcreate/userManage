@@ -36,7 +36,7 @@
 请求头：
 Content-Type: application/json
 
-Body：{"username": "wintest", "password": "123456", "sex": "1", "telephone":"13500010005", "address": "上海市黄浦区"}
+
 提示：sex可以没有  不提供role注册接口
 ```
 
@@ -58,7 +58,7 @@ Body：{
 
 ```
 请求方式：PUT
-请求地址：http://127.0.0.1:9999/users/admin/update/3
+请求地址：http://127.0.0.1:9999/users/admin/update/4
 请求头：
 Content-Type: application/json
 
@@ -70,21 +70,21 @@ Body：{"admin_user": "wintest", "token": "f54f9d6ebba2c75d45ba00a8832cb593", "s
 
 ```
 请求方式：PUT
-请求地址：http://127.0.0.1:9999/users/update
+请求地址：http://127.0.0.1:9999/users/update/:username
 请求头：
 Content-Type: application/json
 
-Body：{"token": "f54f9d6ebba2c75d45ba00a8832cb593", "sex": "1", "address": "广州市天河区", "password": "12345678", "telephone": "13500010003"}
+{"token": "8ff5ec53610e97743ffa97e8df58365c" , "username": "wintest", "password": "123456", "sex": "1", "telephone":"18500010005", "address": "上海市黄浦区"}
 提示： token 新用户名 新电话 新密码必须都提供
 ```
 
-- 删除用户接口请求示例（ token 可以从用户登录成功后的接口返回数据中获取）：：
+- 管理员删除用户接口请求示例（ token 可以从用户登录成功后的接口返回数据中获取）：：
 
 ```
-请求方式：POST
-请求地址：http://127.0.0.1:9999/users/delete/wintest
+请求方式：DELETE
+请求地址：http://127.0.0.1:9999/users/admin/delete/wintest
 请求头：
 Content-Type: application/json
 
-Body：{"admin_user": "wintest", "token": "wintest1587830406"}
+Body：{"admin_user": "root", "token": "wintest1587830406"}
 ```

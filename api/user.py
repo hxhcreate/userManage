@@ -116,7 +116,7 @@ def user_login():
 
 
 @app.route("/users/admin/update/<int:id>", methods=['PUT'])
-def user_update(id):
+def admin_update(id):
     """修改用户信息"""
     admin_user = request.json.get("admin_user", "").strip()  # 当前登录的管理员用户
     token = request.json.get("token", "").strip()  # token口令
@@ -134,37 +134,38 @@ def user_update(id):
             return jsonify({"status": 401, "msg": "手机号格式不正确！！！"})
         else:
             redis_token = redis_db.handle_redis_token(admin_user)  # 从redis中取token
-            if redis_token:
-                if redis_token == token:  # 如果从redis中取到的token不为空，且等于请求body中的token
-                    sql1 = "SELECT role FROM user WHERE username = '{}'".format(admin_user)
-                    res1 = db.select_db(sql1)
-                    print("根据用户名 【 {} 】 查询到用户类型 == >> {}".format(admin_user, res1))
-                    user_role = res1[0]["role"]
-                    if user_role == 0:  # 如果当前登录用户是管理员用户
-                        sql2 = "SELECT * FROM user WHERE id = '{}'".format(id)
-                        res2 = db.select_db(sql2)
-                        print("根据用户ID 【 {} 】 查询到用户信息 ==>> {}".format(id, res2))
-                        sql3 = "SELECT telephone FROM user WHERE telephone = '{}'".format(new_telephone)
-                        res3 = db.select_db(sql3)
-                        print("返回结果：{}".format(res3))
-                        print("查询到手机号 ==>> {}".format(res3))
-                        if not res2:  # 如果要修改的用户不存在于数据库中，res2为空
-                            return jsonify({"code": 401, "msg": "修改的用户ID不存在，无法进行修改，请检查！！！"})
-                        elif res3:  # 如果要修改的手机号已经存在于数据库中，res3非空
-                            return jsonify({"code": 401, "msg": "手机号已被注册，无法进行修改，请检查！！！"})
-                        else:
-                            # 如果请求参数不传address，那么address字段不会被修改，仍为原值
-                            if not new_address:
-                                new_address = res2[0]["address"]
-                            # 把传入的明文密码通过MD5加密变为密文
-                            new_password = get_md5(res2[0]["username"], new_password)
-                            sql3 = "UPDATE user SET password = '{}', sex = '{}', telephone = '{}', address = '{}' " \
-                                   "WHERE id = {}".format(new_password, new_sex, new_telephone, new_address, id)
-                            db.execute_db(sql3)
-                            print("修改用户信息SQL ==>> {}".format(sql3))
-                            return jsonify({"code": 0, "msg": "恭喜，修改用户信息成功！"})
+            if redis_token and redis_token == token:  # 如果从redis中取到的token不为空，且等于请求body中的token
+                sql1 = "SELECT role FROM user WHERE username = '{}'".format(admin_user)
+                res1 = db.select_db(sql1)
+                print("根据用户名 【 {} 】 查询到用户类型 == >> {}".format(admin_user, res1))
+                user_role = res1[0]["role"]
+                if user_role == 0:  # 如果当前登录用户是管理员用户
+                    sql2 = "SELECT * FROM user WHERE id = '{}'".format(id)
+                    res2 = db.select_db(sql2)
+                    print("根据用户ID 【 {} 】 查询到用户信息 ==>> {}".format(id, res2))
+                    sql3 = "SELECT telephone FROM user WHERE telephone = '{}'".format(new_telephone)
+                    res3 = db.select_db(sql3)
+                    print("返回结果：{}".format(res3))
+                    print("查询到手机号 ==>> {}".format(res3))
+                    if not res2:  # 如果要修改的用户不存在于数据库中，res2为空
+                        return jsonify({"code": 401, "msg": "修改的用户ID不存在，无法进行修改，请检查！！！"})
+                    elif res3:  # 如果要修改的手机号已经存在于数据库中，res3非空
+                        return jsonify({"code": 401, "msg": "手机号已被注册，无法进行修改，请检查！！！"})
                     else:
-                        return jsonify({"status": 401, "msg": "当前用户不是管理员用户，无法进行操作，请检查！！！"})
+                        # 如果请求参数不传address，那么address字段不会被修改，仍为原值
+                        if not new_address:
+                            new_address = res2[0]["address"]
+                        # 把传入的明文密码通过MD5加密变为密文
+                        new_password = get_md5(res2[0]["username"], new_password)
+                        sql3 = "UPDATE user SET password = '{}', sex = '{}', telephone = '{}', address = '{}' " \
+                               "WHERE id = {}".format(new_password, new_sex, new_telephone, new_address, id)
+                        db.execute_db(sql3)
+                        print("修改用户信息SQL ==>> {}".format(sql3))
+                        return jsonify({"code": 0, "msg": "恭喜，修改用户信息成功！"})
+                else:
+                    return jsonify({"status": 401, "msg": "当前用户不是管理员用户，无法进行操作，请检查！！！"})
+            else:
+                return jsonify({"msg": "用户未登录", "status": 401})
     else:
         return jsonify({"data": [], "meta": {'msg': "管理员用户/token/密码/手机号不能为空", "status": 401}})
 
@@ -191,9 +192,9 @@ def user_update(username):
             if redis_token == token:  # 等于请求body中的token
                 new_password = get_md5(username, new_password)
                 sql = "UPDATE user SET " \
-                      "`username` = '{}' `password` = '{}', `sex` = '{}', `telephone` = '{}', `address` = '{}' " \
-                      "WHERE username = {}".format(new_username, new_password, new_sex,
-                                                   new_telephone, new_address, username)
+                      "`username` = '{}', `password` = '{}', `sex` = '{}', `telephone` = '{}', `address` = '{}' " \
+                      "WHERE username = '{}'".format(new_username, new_password, new_sex,
+                                                     new_telephone, new_address, username)
                 db.execute_db(sql)
                 print("修改用户信息SQL ==>> {}".format(sql))
                 return jsonify({"status": 200, "msg": "恭喜，修改用户信息成功！"})
@@ -203,6 +204,37 @@ def user_update(username):
         return jsonify({"data": [], "meta": {'msg': "/token/新用户名/密码/手机号不能为空", "status": 401}})
 
 
-@app.route("/users/delete/<string:username>", methods=['DELETE'])
+@app.route("/users/admin/delete/<string:username>", methods=['DELETE'])
 def user_delete(username):
-    return
+    admin_user = request.json.get("admin_user", "").strip()  # 当前登录的管理员用户
+    token = request.json.get("token", "").strip()  # token口令
+    if admin_user and token:
+        redis_token = redis_db.handle_redis_token(admin_user)  # 从redis中取token
+        if redis_token:
+            if redis_token == token:  # 如果从redis中取到的token不为空，且等于请求body中的token
+                sql1 = "SELECT role FROM user WHERE username = '{}'".format(admin_user)
+                res1 = db.select_db(sql1)
+                print("根据用户名 【 {} 】 查询到用户类型 == >> {}".format(admin_user, res1))
+                user_role = res1[0]["role"]
+                if user_role == 0:  # 如果当前登录用户是管理员用户
+                    sql2 = "SELECT * FROM user WHERE username = '{}'".format(username)
+                    res2 = db.select_db(sql2)
+                    print(sql2)
+                    print("根据用户名 【 {} 】 查询到用户信息 ==>> {}".format(username, res2))
+                    if not res2:  # 如果要删除的用户不存在于数据库中，res2为空
+                        return jsonify({"code": 3005, "msg": "删除的用户名不存在，无法进行删除，请检查！！！"})
+                    elif res2[0]["role"] == 0:  # 如果要删除的用户是管理员用户，则不允许删除
+                        return jsonify({"code": 3006, "msg": "用户名：【 {} 】，该用户不允许删除！！！".format(username)})
+                    else:
+                        sql3 = "DELETE FROM user WHERE username = '{}'".format(username)
+                        db.execute_db(sql3)
+                        print("删除用户信息SQL ==>> {}".format(sql3))
+                        return jsonify({"code": 0, "msg": "恭喜，删除用户信息成功！"})
+                else:
+                    return jsonify({"code": 3004, "msg": "当前用户不是管理员用户，无法进行操作，请检查！！！"})
+            else:
+                return jsonify({"code": 3003, "msg": "token口令不正确，请检查！！！"})
+        else:
+            return jsonify({"code": 3002, "msg": "当前用户未登录，请检查！！！"})
+    else:
+        return jsonify({"code": 3001, "msg": "管理员用户/token口令不能为空，请检查！！！"})

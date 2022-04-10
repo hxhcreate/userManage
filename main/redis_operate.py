@@ -1,14 +1,13 @@
 import redis
-from config.settings import REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, EXPIRE_TIME
+from config.settings import REDIS_HOST, REDIS_PORT, EXPIRE_TIME
 
 
 class RedisDB:
 
-    def __init__(self, host, port, passwd):
+    def __init__(self, host, port):
         self.r = redis.Redis(
             host=host,
             port=port,
-            password=passwd,
             decode_responses=True  # get() 得到字符串类型的数据
         )
 
@@ -20,4 +19,4 @@ class RedisDB:
             return redis_token
 
 
-redis_db = RedisDB(REDIS_HOST, REDIS_PORT, REDIS_PASSWORD)
+redis_db = RedisDB(REDIS_HOST, REDIS_PORT)
